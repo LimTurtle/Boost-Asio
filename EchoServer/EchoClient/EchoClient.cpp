@@ -3,45 +3,83 @@
 
 #include <iostream>
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 
 using namespace std;
 
 const char SERVER_IP[] = "127.0.0.1";
 const unsigned short PORT_NUMBER = 31400;
 
-int main()
+class TCP_Client
 {
-    boost::asio::io_service io_service;
+public:
+    TCP_Client(boost::asio::io_context& io_service) :
+        m_io_service(io_service), m_Socket(io_service), m_nSeqNumber(0) {}
 
-    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(SERVER_IP), PORT_NUMBER);
-
-    boost::system::error_code connect_error;
-    boost::asio::ip::tcp::socket socket(io_service);
-    socket.connect(endpoint, connect_error);
-
-    if (connect_error)
+    void Connect(boost::asio::ip::tcp::endpoint& endpoint)
     {
-        cout << "연결 실패. error No: " << connect_error.value() << ", Message: " << connect_error.message() << endl;
-        getchar();
-        return 0;
-    }
-    else {
-        cout << "서버에 연결 성공" << endl;
+        m_Socket.async_connect(endpoint, boost::bind(&TCP_Client::handle_connet, this, boost::asio::placeholders::error)
+        );
     }
 
-    for (int i = 0; i < 7; i++) {
+private:
+    void PostWrite()
+    {
+        if (m_Socket.is_open() == false)
+        {
+            return;
+        }
+
+        if (m_nSeqNumber > 7)
+        {
+            m_Socket.close();
+            return;
+        }
+
+        m_nSeqNumber += 1;
+
         char szMessage[128] = { 0, };
-        sprintf_s(szMessage, 128 - 1, "%d - Send Message", i);
-        int nMsgLen = strnlen_s(szMessage, 128 - 1);
+        sprintf_s(szMessage, 128 - 1, "%d - Send Message", m_nSeqNumber);
+        m_WriteMessage = szMessage;
 
-        boost::system::error_code ignored_error;
-        socket.write_some(boost::asio::buffer(szMessage, nMsgLen), ignored_error);
-        cout << "서버에 보낸 메시지: " << szMessage << endl;
+        boost::asio::async_write(m_Socket, boost::asio::buffer(m_WriteMessage),
+            boost::bind(&TCP_Client::handle_write, this,
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred)
+        );
 
-        char buf[128] = { 0, };
-        boost::system::error_code error;
-        size_t len = socket.read_some(boost::asio::buffer(buf), error);
+        PostReceive();
+    }
 
+    void PostReceive()
+    {
+        memset(&m_ReceiveBuffer, '\0', sizeof(m_ReceiveBuffer));
+        m_Socket.async_read_some(boost::asio::buffer(m_ReceiveBuffer),
+            boost::bind(&TCP_Client::handle_receive, this,
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred)
+        );
+    }
+
+    void handle_connet(const boost::system::error_code& error)
+    {
+        if (error)
+        {
+            cout << "connect failed : " << error.message() << endl;
+        }
+        else
+        {
+            cout << "connected" << endl;
+            PostWrite();
+        }
+    }
+
+    void handle_write(const boost::system::error_code& error, size_t bytes_transferred)
+    {
+
+    }
+    void handle_receive(const boost::system::error_code& error, size_t bytes_transferred)
+    {
         if (error)
         {
             if (error == boost::asio::error::eof)
@@ -50,18 +88,32 @@ int main()
             }
             else
             {
-                cout << "error No: " << error.value() << ", Message: " << error.message().c_str() << endl;
+                cout << "error No: " << error.value() << " error Message: " << error.message() << endl;
             }
-            break;
         }
-        cout << "서버로부터 받은 메시지: " << &buf[0] << endl;
+        else
+        {
+            const string strRecvMessage = m_ReceiveBuffer.data();
+            cout << "서버에서 받은 메시지: " << strRecvMessage << ", 받은 크기: " << bytes_transferred << endl;
+            PostWrite();
+        }
     }
 
-    if (socket.is_open())
-    {
-        socket.close();
-    }
+    boost::asio::io_context& m_io_service;
+    boost::asio::ip::tcp::socket m_Socket;
+    int m_nSeqNumber;
+    array<char, 128> m_ReceiveBuffer;
+    string m_WriteMessage;
+};
 
+int main()
+{
+    boost::asio::io_context io_service;
+    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string(SERVER_IP), PORT_NUMBER);
+    TCP_Client client(io_service);
+    client.Connect(endpoint);
+    io_service.run();
+    cout << "네트워크 접속 종료" << endl;
     getchar();
     return 0;
 }

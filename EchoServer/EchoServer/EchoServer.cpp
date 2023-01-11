@@ -2,8 +2,13 @@
 //
 
 #include <iostream>
+#include <algorithm>
+#include <string>
+#include <list>
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <array>
+
 
 
 using namespace boost::asio;
@@ -12,25 +17,35 @@ using namespace std;
 const char SERVER_IP[] = "127.0.0.1";
 const unsigned short PORT_NUMBER = 31400;
 
-int main()
+class Session
 {
-    io_service io_service;
-    ip::tcp::endpoint endpoint(ip::tcp::v4(), PORT_NUMBER);
-    ip::tcp::acceptor acceptor(io_service, endpoint);
+public:
+    Session(boost::asio::io_context& io_service) : m_Socket(io_service) {}
 
-    ip::tcp::socket socket(io_service);
-    acceptor.accept(socket);
-    cout << "클라이언트 접속" << endl;
-
-    for (;;)
+    boost::asio::ip::tcp::socket& Socket()
     {
-        char buf[128] = { 0, };
-        boost::system::error_code error;
-        size_t len = socket.read_some(boost::asio::buffer(buf), error);
+        return m_Socket;
+    }
 
+    void PostReceive()
+    {
+        memset(&m_ReceiveBuffer, '\0', sizeof(m_ReceiveBuffer));
+        m_Socket.async_read_some
+        (
+            boost::asio::buffer(m_ReceiveBuffer),
+            boost::bind(&Session::handle_receive, this,
+                boost::asio::placeholders::error,
+                boost::asio::placeholders::bytes_transferred)
+        );
+    }
+
+private:
+    void handle_write(const boost::system::error_code& error, size_t bytes_transferred) {}
+    void handle_receive(const boost::system::error_code& error, size_t bytes_transferred)
+    {
         if (error)
         {
-            if(error == boost::asio::error::eof)
+            if (error == boost::asio::error::eof)
             {
                 cout << "클라이언트와 연결이 끊어졌습니다." << endl;
             }
@@ -38,29 +53,83 @@ int main()
             {
                 cout << "error No: " << error.value() << " error Message: " << error.message() << endl;
             }
-            break;
+        }
+        else
+        {
+            const string strRecvMessage = m_ReceiveBuffer.data();
+            cout << "클라이언트에서 받은 메시지: " << strRecvMessage << " , 받은 크기: " << bytes_transferred << endl;
+
+            char szMessage[128] = { 0, };
+            sprintf_s(szMessage, 128 - 1, "Re:%s", strRecvMessage.c_str());
+            m_WriteMessage = szMessage;
+
+            boost::asio::async_write(m_Socket, boost::asio::buffer(m_WriteMessage),
+                boost::bind(&Session::handle_write, this,
+                    boost::asio::placeholders::error,
+                    boost::asio::placeholders::bytes_transferred)
+                );
+
+            PostReceive();
         }
 
-        cout << "클라이언트에서 받은 메시지: " << &buf[0] << endl;
-
-        char szMessage[128] = { 0, };
-        sprintf_s(szMessage, 128 - 1, "Re:%s", &buf[0]);
-        int nMsgLen = strnlen_s(szMessage, 128 - 1);
-        boost::system::error_code ignore_error;
-        socket.write_some(boost::asio::buffer(szMessage, nMsgLen), ignore_error);
-        cout << "클라이언트에 보낸 메시지: " << szMessage << endl;
     }
+
+    boost::asio::ip::tcp::socket m_Socket;
+    string m_WriteMessage;
+    array<char, 128> m_ReceiveBuffer;
+};
+
+
+class TCP_Server
+{
+public:
+    TCP_Server(boost::asio::io_context& io_service) : m_acceptor(io_service,
+        boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), PORT_NUMBER))
+    {
+        m_pSession = nullptr;
+        StartAccept();
+    }
+
+    ~TCP_Server()
+    {
+        if (m_pSession != nullptr)
+        {
+            delete m_pSession;
+        }
+    }
+
+private:
+    void StartAccept()
+    {
+        cout << "클라이언트 접속 대기...." << endl;
+        m_pSession = new Session((boost::asio::io_context&)m_acceptor.get_executor().context());
+        m_acceptor.async_accept(m_pSession->Socket(),
+            boost::bind(&TCP_Server::handle_accept,
+                this, m_pSession, boost::asio::placeholders::error)
+        );
+    }
+
+    void handle_accept(Session* pSession, const boost::system::error_code& error)
+    {
+        if (!error)
+        {
+            cout << "클라이언트 접속 성공" << endl;
+            pSession->PostReceive();
+        }
+    }
+
+    int m_nSeqNumber;
+    boost::asio::ip::tcp::acceptor m_acceptor;
+    Session* m_pSession;
+};
+
+int main()
+{
+    boost::asio::io_context io_service;
+    TCP_Server server(io_service);
+    io_service.run();
+    cout << "네트워크 접속 종료" << endl;
     getchar();
     return 0;
+
 }
-
-// 프로그램 실행: <Ctrl+F5> 또는 [디버그] > [디버깅하지 않고 시작] 메뉴
-// 프로그램 디버그: <F5> 키 또는 [디버그] > [디버깅 시작] 메뉴
-
-// 시작을 위한 팁: 
-//   1. [솔루션 탐색기] 창을 사용하여 파일을 추가/관리합니다.
-//   2. [팀 탐색기] 창을 사용하여 소스 제어에 연결합니다.
-//   3. [출력] 창을 사용하여 빌드 출력 및 기타 메시지를 확인합니다.
-//   4. [오류 목록] 창을 사용하여 오류를 봅니다.
-//   5. [프로젝트] > [새 항목 추가]로 이동하여 새 코드 파일을 만들거나, [프로젝트] > [기존 항목 추가]로 이동하여 기존 코드 파일을 프로젝트에 추가합니다.
-//   6. 나중에 이 프로젝트를 다시 열려면 [파일] > [열기] > [프로젝트]로 이동하고 .sln 파일을 선택합니다.
