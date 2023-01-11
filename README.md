@@ -1,6 +1,6 @@
 # Boost/asio & Unity TCP 비동기 통신
 
-##Boost/asio Server
+## Boost/asio Server
 - 비동기 통신 시 ```async_XXX``` 키워드를 사용해야 하고, bind를 통해 해당 작업이 끝난 뒤 호출할 함수를 정의해야 한다.
 ```cpp
 #include <boost/asio.hpp>
