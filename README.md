@@ -96,3 +96,5 @@ private:
 - ContextMenu 메소드 사용해 SendMessage 함수를 사용자가 필요할 때 실행할 수 있도록 함.
 - Thread를 이용해 서버로부터 Read를 실시간으로 받아올 수 있도록 구현
 - [참고 자료](https://gist.github.com/danielbierwirth/0636650b005834204cb19ef5ae6ccedb)
+
+# Push 오류 체크용
