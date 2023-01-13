@@ -97,4 +97,5 @@ private:
 - Thread를 이용해 서버로부터 Read를 실시간으로 받아올 수 있도록 구현
 - [참고 자료](https://gist.github.com/danielbierwirth/0636650b005834204cb19ef5ae6ccedb)
 
-# Push 오류 체크용
+# Boost/asio Multi Client - Server간 통신
+- 작성 중
