@@ -1,6 +1,6 @@
 # Boost/asio & Unity TCP 비동기 통신
 
-## Boost/asio Server
+### Boost/asio Server
 - 비동기 통신 시 ```async_XXX``` 키워드를 사용해야 하고, bind를 통해 해당 작업이 끝난 뒤 호출할 함수를 정의해야 한다.
 ```cpp
 #include <boost/asio.hpp>
@@ -92,9 +92,10 @@ private:
 };
 ```
 
-## Unity Client
+### Unity Client
 - ContextMenu 메소드 사용해 SendMessage 함수를 사용자가 필요할 때 실행할 수 있도록 함.
 - Thread를 이용해 서버로부터 Read를 실시간으로 받아올 수 있도록 구현
 - [참고 자료](https://gist.github.com/danielbierwirth/0636650b005834204cb19ef5ae6ccedb)
 
-# Push 오류 체크용
+# Boost/asio Multi Client - Server간 통신
+- 작성 중
