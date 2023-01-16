@@ -75,7 +75,7 @@ void WriteMessageToStream(Protocol::INGAME msgType, const protobuf::Message& mes
 
 int main(int argc, char* argv[])
 {
-    /*
+    
     Protocol::S_DATA data;
     data.set_id(1);
     data.set_map_level(10);
@@ -83,22 +83,26 @@ int main(int argc, char* argv[])
 
     int bufSize = 0;
     bufSize += MessageHeaderSize + data.ByteSizeLong();
-    protobuf::uint8* outputBuf = new protobuf::uint8[bufSize];
+    //protobuf::uint8* outputBuf = new protobuf::uint8[bufSize];
+    char* outputBuf = (char*)malloc(bufSize * sizeof(char));
 
     protobuf::io::ArrayOutputStream output_array_stream(outputBuf, bufSize);
+    
     protobuf::io::CodedOutputStream output_coded_stream(&output_array_stream);
 
     WriteMessageToStream(Protocol::MOVE, data, output_coded_stream);
 
+
+    
     protobuf::io::ArrayInputStream input_array_stream(outputBuf, bufSize);
     protobuf::io::CodedInputStream input_coded_stream(&input_array_stream);
 
     PacketProcess(input_coded_stream);
 
-    delete[] outputBuf;
-    outputBuf = NULL;
-    */
+    
 
+    
+    
     try {
         WSADATA wsaData;
         WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -111,7 +115,7 @@ int main(int argc, char* argv[])
         connect(hSocket, (SOCKADDR*)&tAddr, sizeof(tAddr));
 
         char cBuf[] = "Client Send";
-        send(hSocket, cBuf, strlen(cBuf), 0);
+        send(hSocket, outputBuf, bufSize, 0);
         closesocket(hSocket);
         WSACleanup();
         
@@ -122,6 +126,8 @@ int main(int argc, char* argv[])
     }
 
     cout << "it's ok" << endl;
-
+    delete[] outputBuf;
+    outputBuf = NULL;
+    
     return 0;
 }
