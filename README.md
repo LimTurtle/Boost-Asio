@@ -99,3 +99,4 @@ private:
 
 # Boost/asio Multi Client - Server간 통신
 - 작성 중
+- [참조](https://protobuf.narkive.com/iknsRoCS/sending-a-message-over-tcp-from-a-c-client-to-a-java-server)
