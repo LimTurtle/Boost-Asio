@@ -5,6 +5,11 @@
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/text_format.h>
 #include "CProtocol.pb.h"
+#include <WinSock2.h>
+
+#pragma comment(lib, "ws2_32")
+
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 using namespace std;
 using namespace google;
@@ -70,6 +75,7 @@ void WriteMessageToStream(Protocol::INGAME msgType, const protobuf::Message& mes
 
 int main(int argc, char* argv[])
 {
+    /*
     Protocol::S_DATA data;
     data.set_id(1);
     data.set_map_level(10);
@@ -91,5 +97,31 @@ int main(int argc, char* argv[])
 
     delete[] outputBuf;
     outputBuf = NULL;
+    */
+
+    try {
+        WSADATA wsaData;
+        WSAStartup(MAKEWORD(2, 2), &wsaData);
+        SOCKET hSocket;
+        hSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+        SOCKADDR_IN tAddr = {};
+        tAddr.sin_family = AF_INET;
+        tAddr.sin_port = htons(8000);
+        tAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+        connect(hSocket, (SOCKADDR*)&tAddr, sizeof(tAddr));
+
+        char cBuf[] = "Client Send";
+        send(hSocket, cBuf, strlen(cBuf), 0);
+        closesocket(hSocket);
+        WSACleanup();
+        
+    }
+    catch (exception e)
+    {
+        cout << e.what() << endl;
+    }
+
+    cout << "it's ok" << endl;
+
     return 0;
 }
