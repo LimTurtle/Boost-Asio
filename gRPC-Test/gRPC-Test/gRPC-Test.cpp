@@ -6,6 +6,7 @@
 #include <google/protobuf/text_format.h>
 #include "CProtocol.pb.h"
 #include <WinSock2.h>
+#include "ConnectToSQL.h"
 
 #pragma comment(lib, "ws2_32")
 
@@ -75,6 +76,8 @@ void WriteMessageToStream(Protocol::INGAME msgType, const protobuf::Message& mes
 
 int main(int argc, char* argv[])
 {
+    ConnectToSQL* mysql = new ConnectToSQL();
+    mysql->SQLQuery("select * from actor");
     
     Protocol::S_DATA data;
     data.set_id(1);

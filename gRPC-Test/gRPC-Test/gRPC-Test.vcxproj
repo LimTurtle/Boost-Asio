@@ -71,8 +71,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>D:\github\vcpkg\installed\x64-windows\include;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\github\vcpkg\installed\x64-windows\debug\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\github\vcpkg\installed\x64-windows\include;C:\Program Files\MySQL\MySQL Server 8.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\github\vcpkg\installed\x64-windows\debug\lib;C:\Program Files\MySQL\MySQL Server 8.0\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>D:\github\vcpkg\installed\x64-windows\include;$(IncludePath)</IncludePath>
@@ -116,7 +116,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libprotobufd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libprotobufd.lib;libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,10 +138,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\proto\CProtocol.pb.cc" />
+    <ClCompile Include="ConnectToSQL.cpp" />
     <ClCompile Include="gRPC-Test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\proto\CProtocol.pb.h" />
+    <ClInclude Include="ConnectToSQL.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
