@@ -11,7 +11,7 @@ public:
 
 	int SQLInit();
 
-	int SQLQuery(const char* query);
+	MYSQL_ROW SQLQuery(const char* query);
 
 
 private:

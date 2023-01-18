@@ -77,12 +77,14 @@ void WriteMessageToStream(Protocol::INGAME msgType, const protobuf::Message& mes
 int main(int argc, char* argv[])
 {
     ConnectToSQL* mysql = new ConnectToSQL();
-    mysql->SQLQuery("select * from actor");
+    MYSQL_ROW res;
+    res = mysql->SQLQuery("select * from objectinfo");
+    cout << res[0] << " / " << res[1] << " / " << res[2] << " / " << res[3] << endl;
     
     Protocol::S_DATA data;
-    data.set_id(1);
-    data.set_map_level(10);
-    data.set_match_room(1);
+    data.set_id(atoi(res[0]));
+    data.set_map_level(atoi(res[1]));
+    data.set_match_room(atoi(res[2]));
 
     int bufSize = 0;
     bufSize += MessageHeaderSize + data.ByteSizeLong();
