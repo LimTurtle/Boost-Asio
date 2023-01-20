@@ -24,12 +24,24 @@
     <ClCompile Include="ConnectToSQL.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="PacketManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="ConnectToTCP.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\proto\CProtocol.pb.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ConnectToSQL.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="ConnectToTCP.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
