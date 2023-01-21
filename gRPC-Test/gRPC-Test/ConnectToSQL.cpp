@@ -24,7 +24,7 @@ int ConnectToSQL::SQLInit()
 		cout << "Error : " << mysql_error(&Conn) << endl;
 		return 0;
 	}
-
+	cout << "Success MySQL Init" << endl;
 	return 1;
 }
 
