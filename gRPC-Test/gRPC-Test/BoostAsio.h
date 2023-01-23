@@ -30,7 +30,10 @@ private:
     boost::asio::io_context& m_io_service;
     boost::asio::ip::tcp::socket m_Socket;
     int m_nSeqNumber;
+    char* outputBuf;
+    int bufSize;
     array<char, 128> m_ReceiveBuffer;
+    array<float, 3> temp;
     string m_WriteMessage;
 
     ConnectToSQL* mysql;

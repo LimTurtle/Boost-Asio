@@ -25,8 +25,10 @@ public:
     char* MakePacket(int x, int y, int z);
     //~PacketManager();
     int GetBufSize();
+    void PacketProcess(protobuf::io::CodedInputStream& input_stream);
 
 private:
+    void PrintMsg(::google::protobuf::Message& msg);
     void WriteMessageToStream(Protocol::INGAME msgType, const protobuf::Message& message,
         protobuf::io::CodedOutputStream& stream);
     const int headerSize = sizeof(MessageHeader);

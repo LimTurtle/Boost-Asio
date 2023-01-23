@@ -19,6 +19,13 @@ char* PacketManager::MakePacket(int x, int y, int z)
     return tempBuf;
 }
 
+void PacketManager::PrintMsg(::google::protobuf::Message& msg)
+{
+    string str;
+    str = msg.DebugString();
+    cout << str << endl;
+}
+
 void PacketManager::WriteMessageToStream(Protocol::INGAME msgType, const protobuf::Message& message,
     protobuf::io::CodedOutputStream& stream)
 {
@@ -34,11 +41,11 @@ int PacketManager::GetBufSize()
     return bufSize;
 }
 
-/*
-void PacketProcess(protobuf::io::CodedInputStream& input_stream)
+
+void PacketManager::PacketProcess(protobuf::io::CodedInputStream& input_stream)
 {
     MessageHeader msgHeader;
-    while (input_stream.ReadRaw(&msgHeader, MessageHeaderSize))
+    while (input_stream.ReadRaw(&msgHeader, headerSize))
     {
         const void* payload_ptr = NULL;
         int remainSize = 0;
@@ -65,4 +72,3 @@ void PacketProcess(protobuf::io::CodedInputStream& input_stream)
         }
     }
 }
-*/

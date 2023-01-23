@@ -19,28 +19,35 @@ void BoostAsio::PostWrite()
         return;
     }
 
+    /*
     if (m_nSeqNumber > 7)
     {
         m_Socket.close();
         return;
     }
+    */
+    
 
     m_nSeqNumber += 1;
-    char* outputBuf;
+    //char* outputBuf;
     if (m_nSeqNumber == 1)
     {
         outputBuf = packetManager->MakePacket(atoi(res[0]), atoi(res[1]), atoi(res[2]));
+        temp[0] = atoi(res[0]);
+        temp[1] = atoi(res[1]);
+        temp[2] = atoi(res[2]);
+        //temp[3] = atoi(res[3]);
     }
     else
     {
-        outputBuf = packetManager->MakePacket(1, 2, 3);
+        temp[0] += 1;
+        outputBuf = packetManager->MakePacket(temp[0], temp[1], temp[2]);
     }
     
-    int bufSize = packetManager->GetBufSize();
-    string str = outputBuf;
-
-    char szMessage[128] = { 0, };
-    sprintf_s(szMessage, 128 - 1, "%d - Send Message", m_nSeqNumber);
+    bufSize = packetManager->GetBufSize();
+    //string str = outputBuf;
+    //char szMessage[128] = { 0, };
+    //sprintf_s(szMessage, 128 - 1, "%d - Send Message", m_nSeqNumber);
     m_WriteMessage = outputBuf;
 
     boost::asio::async_write(m_Socket, boost::asio::buffer(outputBuf, bufSize),
@@ -49,13 +56,14 @@ void BoostAsio::PostWrite()
             boost::asio::placeholders::bytes_transferred)
     );
 
-    //PostReceive();
+    PostReceive();
 }
 
 void BoostAsio::PostReceive()
 {
-    memset(&m_ReceiveBuffer, '\0', sizeof(m_ReceiveBuffer));
-    m_Socket.async_read_some(boost::asio::buffer(m_ReceiveBuffer),
+    //memset(&m_ReceiveBuffer, '\0', sizeof(m_ReceiveBuffer));
+
+    m_Socket.async_read_some(boost::asio::buffer(outputBuf, bufSize),
         boost::bind(&BoostAsio::handle_receive, this,
             boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred)
@@ -97,7 +105,7 @@ void BoostAsio::handle_write(const boost::system::error_code& error, size_t byte
     else
     {
         cout << m_nSeqNumber << " 전송 완료" << endl;
-        PostWrite();
+        //PostWrite();
     }
 }
 
@@ -116,8 +124,11 @@ void BoostAsio::handle_receive(const boost::system::error_code& error, size_t by
     }
     else
     {
+        protobuf::io::ArrayInputStream input_array_stream(outputBuf, bufSize);
+        protobuf::io::CodedInputStream input_coded_stream(&input_array_stream);
+        packetManager->PacketProcess(input_coded_stream);
         const string strRecvMessage = m_ReceiveBuffer.data();
-        cout << "서버에서 받은 메시지: " << strRecvMessage << ", 받은 크기: " << bytes_transferred << endl;
+        //cout << "서버에서 받은 메시지: " << strRecvMessage << ", 받은 크기: " << bytes_transferred << endl;
         PostWrite();
     }
 }
